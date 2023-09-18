@@ -47,21 +47,21 @@ router.post('/register', async (req, res) => {
 
 
 router.post('/login', async (req, res) => {
-  const { email, password } = req.body;
-  if (!email || !password) {
-    return res.status(422).json({ error: "Please Enter Email & Password" })
+  const { reg_no, comp_name } = req.body;
+  if (!reg_no || !comp_name) {
+    return res.status(422).json({ error: "Please Enter Registeration No & Company Name" })
   }
 
-  const { error } = validator.login(req.body);
-  if (error) return res.status(400).send(error.details[0].message);
+  // const { error } = validator.login(req.body);
+  // if (error) return res.status(400).send(error.details[0].message);
 
   try {
-    let user = await User.findOne({ email: email });
-    if (!user) return res.status(400).send("Email doesn't exist");
+    let user = await RegisterForm.findOne({ reg_no: reg_no });
+    if (!user) return res.status(400).send("The Company With This Reg No Doesn't Exisit");
 
-    if (user.password === password) {
-      const { name, email } = user;
-      return res.status(200).json({ message: "Login successful!", name, email });
+    if (user.reg_no === reg_no) {
+      const { reg_no, comp_name } = user;
+      return res.status(200).json({ message: "Login successful!",  });
     } else {
       return res.status(400).send("Invalid password.");
     }
@@ -83,14 +83,13 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
   let logoUrl;  // Define logoUrl here
 
   try {
-    const { name, email, mobile, landline, website, address } = req.body;
+    const { comp_name, email, mobile, landline, website, address ,reg_no } = req.body;
     logoUrl = req.file ? req.file.path : null;  // Assign a value to logoUrl
 
     // Check if the company with the given email already exists
     const existingCompany = await RegisterForm.findOne({ email });
 
     if (existingCompany) {
-      // If the company already exists and there's an uploaded image, delete it
       if (logoUrl) {
         fs.unlinkSync(logoUrl);
       }
@@ -100,13 +99,14 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
 
     // Create a new company if it doesn't exist
     const user = new RegisterForm({
-      name,
+      comp_name,
       email,
       mobile,
       landline,
       website,
       address,
       logoUrl,
+      reg_no
     });
 
     await user.save();
