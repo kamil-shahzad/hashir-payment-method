@@ -1,0 +1,30 @@
+Payment Gateway:
+
+
+APIS From diffferent Platforms:
+
+API
+Max TRNAS
+Avg Trans
+
+
+/////////////-----------------------------------------------------///////////
+
+
+Companies Registration:
+	Registration Form
+		Name
+		Email , Mobile, Landline , Website, Address, 
+		Registration Number (UI)
+		IP's (server)
+		Daily Avg Transaction Limit	
+		Average Transaction Limit	
+		Blocked Transaction Limit
+		Logo
+		Payment Gateways. (Dropdown)
+		
+
+
+
+
+		
