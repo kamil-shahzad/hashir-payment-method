@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router()
 const User = require('../../models/User');
-const Transaction = require('../../models/Transaction');
-const Payment = require('../../models/Payment');
+const RegisterForm = require('../../models/RegisterForm'); 
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const validator = require("./validator");
+
+const multer = require('multer');
 
 
 
@@ -72,56 +73,62 @@ router.post('/login', async (req, res) => {
 
 
 
-router.post('/transactions', async (req, res) => {
-  try {
-    const { name, email, amount } = req.body;
 
-    if (!name || !email || !amount) {
-      return res.status(422).json({ error: "Please Enter Name,Email" })
+const upload = multer({ dest: 'uploads/' }); 
+
+const fs = require('fs');
+
+
+router.post('/registerform', upload.single('logo'), async (req, res) => {
+  let logoUrl;  // Define logoUrl here
+
+  try {
+    const { name, email, mobile, landline, website, address } = req.body;
+    logoUrl = req.file ? req.file.path : null;  // Assign a value to logoUrl
+
+    // Check if the company with the given email already exists
+    const existingCompany = await RegisterForm.findOne({ email });
+
+    if (existingCompany) {
+      // If the company already exists and there's an uploaded image, delete it
+      if (logoUrl) {
+        fs.unlinkSync(logoUrl);
+      }
+
+      return res.status(400).json({ error: 'Company already registered' });
     }
 
-
-    const transaction = new Transaction({
-      name: name,
-      email: email,
-      amount: amount,
+    // Create a new company if it doesn't exist
+    const user = new RegisterForm({
+      name,
+      email,
+      mobile,
+      landline,
+      website,
+      address,
+      logoUrl,
     });
 
-    const savedTransaction = await transaction.save();
+    await user.save();
 
-    res.status(201).json(savedTransaction);
+    res.json({ message: 'Registration successful', user });
   } catch (error) {
-    console.error('Error saving transaction:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
+    console.error('Registration failed:', error);
+
+    // If an error occurs and there's an uploaded image, delete it
+    if (logoUrl) {
+      fs.unlinkSync(logoUrl);
+    }
+
+    res.status(500).json({ error: 'Registration failed' });
   }
 });
 
-router.post('/payments', async (req, res) => {
-  try {
-    const { Basket_id, Merchant_id, name, Acesstoken,Amount } = req.body;
-
-    if (!Basket_id, !Merchant_id, !name, !Acesstoken ,!Amount) {
-      return res.status(422).json({ error: "please Enter Basket id , Merchant_id , Name , Token & Amount" })
-    }
 
 
-    const payment = new Payment({
-      Basket_id: Basket_id,
-      Merchant_id: Merchant_id,
-      name: name,
-      Acesstoken: Acesstoken,
-      Amount : Amount
-    })
-
-    const savedPayment = await payment.save();
 
 
-    res.status(201).json(savedPayment);
-  } catch (error) {
-    console.error('Error saving Payments:', error);
-    res.status(500).json({ error: 'Internal Server Error' });
-  }
-})
+
 
 
 module.exports = router
