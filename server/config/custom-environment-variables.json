@@ -1,0 +1,6 @@
+const crypto = require('crypto');
+
+// Generate a secure random key (32 bytes = 256 bits)
+const jwtSecretKey = crypto.randomBytes(32).toString('hex');
+
+console.log('JWT Secret Key:', jwtSecretKey);
