@@ -34,6 +34,27 @@ const Element = () => {
                   </div>
                   <div className='form-group'>
                     <input
+                      type='number'
+                      className='form-control input-rounded'
+                      placeholder='Mobile Number'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='number'
+                      className='form-control input-rounded'
+                      placeholder='Landline Number'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='number'
+                      className='form-control input-rounded'
+                      placeholder='Address'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
                       type='text'
                       className='form-control input-rounded'
                       placeholder='Registeration Number'
