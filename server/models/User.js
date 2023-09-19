@@ -2,16 +2,22 @@ const mongoose = require('mongoose')
 const jwt = require("jsonwebtoken");
 const Joi = require("joi");
 const userSchema = new mongoose.Schema({
-    comp_name:{
+    companyName: {
         type: String,
         required: true
-    },
-    reg_no:{
+      },
+      reg_no: {
         type: String,
-        required: true,
-        unique: true,
-
-    },
+        required: true
+      },
+      token: {
+        type: String,
+        required: true
+      },
+      tokenExpiresAt: {
+        type: Date,
+        required: true
+      }
 })
 
 const User = mongoose.model('USER', userSchema)

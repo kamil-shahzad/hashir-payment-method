@@ -68,6 +68,16 @@ router.post('/login', async (req, res) => {
 
       const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
 
+      // Save token, company name, registration number, and token expiration in the User collection
+      const userRecord = new User({
+        companyName: comp_name,
+        reg_no: reg_no,
+        token: token,
+        tokenExpiresAt: new Date(Date.now() + expiresIn * 1000)
+      });
+
+      await userRecord.save();
+
       return res.status(200).json({ message: "Login successful!", name: user.comp_name, token, expiresIn });
     } else {
       return res.status(400).send("Invalid company name.");
@@ -77,6 +87,7 @@ router.post('/login', async (req, res) => {
     return res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 
