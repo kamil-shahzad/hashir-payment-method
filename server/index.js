@@ -5,13 +5,28 @@ const mongoose = require('mongoose')
 
 app.use(express.json())
 
+require('dotenv').config({ path: './config.env' });
 
-dotenv.config({path:'./config.env'})
-const DB = process.env.DATABASE
+const DB = process.env.DATABASE;
 
-mongoose.connect(DB).then(()=>{
-	console.log("DB connected")
-}).catch((err)=>{console.log('Error in establishing database')})
+mongoose
+  .connect(DB, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => {
+    console.log('DB connected');
+  })
+  .catch((err) => {
+    console.error('Error in establishing database:', err);
+  });
+
+// dotenv.config({path:'./config.env'})
+// const DB = process.env.DATABASE
+
+// mongoose.connect(DB).then(()=>{
+// 	console.log("DB connected")
+// }).catch((err)=>{console.log('Error in establishing database')})
 
 //middlewares
 // app.use(req, res, next)

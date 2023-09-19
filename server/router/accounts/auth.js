@@ -7,8 +7,6 @@ const bcrypt = require("bcrypt");
 const validator = require("./validator");
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: './config.env' }); 
-
-
 const multer = require('multer');
 
 
@@ -58,7 +56,8 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    let user = await RegisterForm.findOne({ reg_no: reg_no });
+    const user = await RegisterForm.findOne({ reg_no: reg_no });
+
     if (!user) {
       return res.status(400).send("The Company With This Reg No Doesn't Exist");
     }
@@ -67,15 +66,16 @@ router.post('/login', async (req, res) => {
       const secretKey = process.env.JWT_SECRET_KEY;
       const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey);
 
-      return res.status(200).json({ message: "Login successful!", name: user.comp_name, token: token });
+      return res.status(200).json({ message: "Login successful!", companyname: user.comp_name, token: token });
     } else {
-      return res.status(400).send("Invalid password.");
+      return res.status(400).send("Invalid company name.");
     }
   } catch (error) {
     console.error(error);
     return res.status(500).send("Internal Server Error");
   }
 });
+
 
 
 
