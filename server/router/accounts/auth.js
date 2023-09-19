@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { reg_no, comp_name } = req.body;
   if (!reg_no || !comp_name) {
-    return res.status(422).json({ error: "Please Enter Registeration No & Company Name" })
+    return res.status(422).json({ error: "g;lkjh" })
   }
 
   // const { error } = validator.login(req.body);
