@@ -64,9 +64,11 @@ router.post('/login', async (req, res) => {
 
     if (user.comp_name === comp_name) {
       const secretKey = process.env.JWT_SECRET_KEY;
-      const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey);
+      const expiresIn = 60;  // Token expiration time in seconds (1 minute)
 
-      return res.status(200).json({ message: "Login successful!", companyname: user.comp_name, token: token });
+      const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
+
+      return res.status(200).json({ message: "Login successful!", name: user.comp_name, token, expiresIn });
     } else {
       return res.status(400).send("Invalid company name.");
     }
