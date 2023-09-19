@@ -5,6 +5,9 @@ const RegisterForm = require('../../models/RegisterForm');
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const validator = require("./validator");
+const jwt = require('jsonwebtoken');
+require('dotenv').config({ path: './config.env' }); 
+
 
 const multer = require('multer');
 
@@ -46,22 +49,25 @@ router.post('/register', async (req, res) => {
 })
 
 
+
 router.post('/login', async (req, res) => {
   const { reg_no, comp_name } = req.body;
-  if (!reg_no || !comp_name) {
-    return res.status(422).json({ error: "g;lkjh" })
-  }
 
-  // const { error } = validator.login(req.body);
-  // if (error) return res.status(400).send(error.details[0].message);
+  if (!reg_no || !comp_name) {
+    return res.status(422).json({ error: "Registration number and company name are required" });
+  }
 
   try {
     let user = await RegisterForm.findOne({ reg_no: reg_no });
-    if (!user) return res.status(400).send("The Company With This Reg No Doesn't Exisit");
+    if (!user) {
+      return res.status(400).send("The Company With This Reg No Doesn't Exist");
+    }
 
-    if (user.reg_no === reg_no) {
-      const { reg_no, comp_name } = user;
-      return res.status(200).json({ message: "Login successful!",  });
+    if (user.comp_name === comp_name) {
+      const secretKey = process.env.JWT_SECRET_KEY;
+      const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey);
+
+      return res.status(200).json({ message: "Login successful!", name: user.comp_name, token: token });
     } else {
       return res.status(400).send("Invalid password.");
     }
