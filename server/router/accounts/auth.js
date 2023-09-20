@@ -8,9 +8,8 @@ const validator = require("./validator");
 const jwt = require('jsonwebtoken');
 require('dotenv').config({ path: './config.env' }); 
 const multer = require('multer');
-const crypto = require('crypto');
-const secretKeyGen = crypto.randomBytes(32).toString('base64');
-console.log('Generated Secret Key:', secretKeyGen);
+
+
 
 router.get('/', (req, res) => {
   res.send('Backend running from the router')
@@ -64,7 +63,7 @@ router.post('/login', async (req, res) => {
     }
 
     if (user.comp_name === comp_name) {
-      const secretKey = secretKeyGen;
+      const secretKey = process.env.JWT_SECRET;
       const expiresIn = 60;  // Token expiration time in seconds (1 minute)
 
       const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
@@ -143,5 +142,12 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+
+
+
+
+
+
 
 module.exports = router
