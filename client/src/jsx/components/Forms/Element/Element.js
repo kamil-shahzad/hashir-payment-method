@@ -28,6 +28,27 @@ const Element = () => {
                   <div className='form-group'>
                     <input
                       type='text'
+                      className='form-control input-default '
+                      placeholder='Password'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='Merchant ID'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='Secret Key'
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
                       className='form-control input-rounded'
                       placeholder='Email'
                     />
