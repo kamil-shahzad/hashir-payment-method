@@ -9,18 +9,11 @@ const registerFormSchema = new mongoose.Schema({
   address: { type: String },
   logoUrl: { type: String },
   reg_no: { type: String, required: true },
-  PaymentMethods: {
-    type: [String],
-    required: true
-  },
-  merchantId: {
-    type: Number,
-    unique: true
-  },
-  securedKey: {
-    type: String,
-    unique: true
-  }
+  PaymentMethods: [{
+    method: { type: String, required: true },
+    merchantId: { type: String },
+    secretKey: { type: String }
+  }]
 });
 
 const RegisterForm = mongoose.model('RegisterForm', registerFormSchema);

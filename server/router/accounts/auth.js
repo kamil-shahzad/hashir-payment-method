@@ -67,11 +67,10 @@ router.post('/login', async (req, res) => {
     }
 
     const secretKey = process.env.JWT_SECRET;
-    const expiresIn = 60;  // Token expiration time in seconds (1 minute)
+    const expiresIn = 60;  
 
     const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
 
-    // Check if the user record already exists in the User collection
     let userRecord = await User.findOne({ reg_no: reg_no });
 
     if (!userRecord) {
@@ -80,13 +79,10 @@ router.post('/login', async (req, res) => {
         reg_no: reg_no,
         token: token,
         tokenExpiresAt: new Date(Date.now() + expiresIn * 1000),
-        merchantId: user.merchantId, // Include merchant ID from RegisterForm
-        securedKey: user.securedKey // Include secured key from RegisterForm
       });
 
       await userRecord.save();
     } else {
-      // If user record exists, update the token and expiration time
       userRecord.token = token;
       userRecord.tokenExpiresAt = new Date(Date.now() + expiresIn * 1000);
       await userRecord.save();
@@ -97,8 +93,6 @@ router.post('/login', async (req, res) => {
       name: user.comp_name,
       token,
       expiresIn,
-      merchantId: user.merchantId, // Include merchant ID in the response
-      securedKey: user.securedKey // Include secured key in the response
     });
   } catch (error) {
     console.error(error);
@@ -128,30 +122,55 @@ const upload = multer({ storage: storage });
 
 const fs = require('fs');
 
+
+let registrationCounter = 1;
+const paymentMethodsMapped = {
+  0: 'easypaisa',
+  1: 'jazzcash',
+  2: 'HBL'
+};
+
 router.post('/registerform', upload.single('logo'), async (req, res) => {
   let imageUrl;
 
   try {
-    const { comp_name, email, mobile, landline, website, address, reg_no, PaymentMethods } = req.body;
+    const { comp_name, email, mobile, landline, website, address, PaymentMethods } = req.body;
 
-    const paymentMethodsMapped = {
-      0: 'easypaisa',
-      1: 'jazzcash',
-      2 : 'Hbl',
-    };
+    const mappedPaymentMethods = await Promise.all(PaymentMethods.map(async methodIndex => {
+      const method = paymentMethodsMapped[methodIndex];
 
-    const mappedPaymentMethods = PaymentMethods.map(methodIndex => paymentMethodsMapped[methodIndex]);
+      let merchantId, secretKey;
 
-    // Check if req.file is defined before accessing its properties
+      // Assuming you prompt the user for merchantId and secretKey during registration
+      if (method === 'easypaisa') {
+        merchantId = req.body['merchantId_easypaisa'];
+        secretKey = req.body['secretKey_easypaisa'];
+      } else if (method === 'jazzcash') {
+        merchantId = req.body['merchantId_jazzcash'];
+        secretKey = req.body['secretKey_jazzcash'];
+      } else if (method === 'HBL') {
+        merchantId = req.body['merchantId_HBL'];
+        secretKey = req.body['secretKey_HBL'];
+      }
+
+      return {
+        method,
+        merchantId,
+        secretKey
+      };
+    }));
+
+    const reg_no = generateRegistrationNumber();
+
     if (req.file) {
       imageUrl = req.file.filename;
     }
 
-    const existingCompany = await RegisterForm.findOne({ email });
+    const existingCompany = await RegisterForm.findOne({ comp_name });
 
     if (existingCompany) {
       if (imageUrl) {
-        fs.unlinkSync('uploads/' + imageUrl); // Delete the uploaded image
+        fs.unlinkSync('uploads/' + imageUrl);
       }
 
       return res.status(400).json({ error: 'Company already registered' });
@@ -166,16 +185,17 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
       address,
       logoUrl: imageUrl,
       reg_no,
-      PaymentMethods: mappedPaymentMethods  // Store updated payment methods
+      PaymentMethods: mappedPaymentMethods
     });
 
     await user.save();
+
+    registrationCounter++;
 
     res.json({ message: 'Registration successful', user });
   } catch (error) {
     console.error('Registration failed:', error);
 
-    // If an error occurs and there's an uploaded image, delete it
     if (imageUrl) {
       fs.unlinkSync('uploads/' + imageUrl);
     }
@@ -183,6 +203,13 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+
+// Function to generate a registration number based on the registration count
+function generateRegistrationNumber() {
+  return `REG-${registrationCounter}`;
+}
+
 
 
 
