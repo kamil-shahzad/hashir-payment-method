@@ -56,32 +56,50 @@ router.post('/login', async (req, res) => {
   }
 
   try {
-    const user = await RegisterForm.findOne({ reg_no: reg_no });
+    let user = await RegisterForm.findOne({ reg_no: reg_no });
 
     if (!user) {
       return res.status(400).send("The Company With This Reg No Doesn't Exist");
     }
 
-    if (user.comp_name === comp_name) {
-      const secretKey = process.env.JWT_SECRET;
-      const expiresIn = 60;  // Token expiration time in seconds (1 minute)
+    if (user.comp_name !== comp_name) {
+      return res.status(400).send("Invalid company name.");
+    }
 
-      const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
+    const secretKey = process.env.JWT_SECRET;
+    const expiresIn = 60;  // Token expiration time in seconds (1 minute)
 
-      // Save token, company name, registration number, and token expiration in the User collection
-      const userRecord = new User({
+    const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
+
+    // Check if the user record already exists in the User collection
+    let userRecord = await User.findOne({ reg_no: reg_no });
+
+    if (!userRecord) {
+      userRecord = new User({
         companyName: comp_name,
         reg_no: reg_no,
         token: token,
-        tokenExpiresAt: new Date(Date.now() + expiresIn * 1000)
+        tokenExpiresAt: new Date(Date.now() + expiresIn * 1000),
+        merchantId: user.merchantId, // Include merchant ID from RegisterForm
+        securedKey: user.securedKey // Include secured key from RegisterForm
       });
 
       await userRecord.save();
-
-      return res.status(200).json({ message: "Login successful!", name: user.comp_name, token, expiresIn });
     } else {
-      return res.status(400).send("Invalid company name.");
+      // If user record exists, update the token and expiration time
+      userRecord.token = token;
+      userRecord.tokenExpiresAt = new Date(Date.now() + expiresIn * 1000);
+      await userRecord.save();
     }
+
+    return res.status(200).json({
+      message: "Login successful!",
+      name: user.comp_name,
+      token,
+      expiresIn,
+      merchantId: user.merchantId, // Include merchant ID in the response
+      securedKey: user.securedKey // Include secured key in the response
+    });
   } catch (error) {
     console.error(error);
     return res.status(500).send("Internal Server Error");
@@ -93,30 +111,52 @@ router.post('/login', async (req, res) => {
 
 
 
-const upload = multer({ dest: 'uploads/' }); 
+const path = require('path');
+
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const ext = path.extname(file.originalname);
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  }
+});
+
+const upload = multer({ storage: storage });
 
 const fs = require('fs');
 
-
 router.post('/registerform', upload.single('logo'), async (req, res) => {
-  let logoUrl;  // Define logoUrl here
+  let imageUrl;
 
   try {
-    const { comp_name, email, mobile, landline, website, address ,reg_no } = req.body;
-    logoUrl = req.file ? req.file.path : null;  // Assign a value to logoUrl
+    const { comp_name, email, mobile, landline, website, address, reg_no, PaymentMethods } = req.body;
 
-    // Check if the company with the given email already exists
+    const paymentMethodsMapped = {
+      0: 'easypaisa',
+      1: 'jazzcash',
+      2 : 'Hbl',
+    };
+
+    const mappedPaymentMethods = PaymentMethods.map(methodIndex => paymentMethodsMapped[methodIndex]);
+
+    // Check if req.file is defined before accessing its properties
+    if (req.file) {
+      imageUrl = req.file.filename;
+    }
+
     const existingCompany = await RegisterForm.findOne({ email });
 
     if (existingCompany) {
-      if (logoUrl) {
-        fs.unlinkSync(logoUrl);
+      if (imageUrl) {
+        fs.unlinkSync('uploads/' + imageUrl); // Delete the uploaded image
       }
 
       return res.status(400).json({ error: 'Company already registered' });
     }
 
-    // Create a new company if it doesn't exist
     const user = new RegisterForm({
       comp_name,
       email,
@@ -124,8 +164,9 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
       landline,
       website,
       address,
-      logoUrl,
-      reg_no
+      logoUrl: imageUrl,
+      reg_no,
+      PaymentMethods: mappedPaymentMethods  // Store updated payment methods
     });
 
     await user.save();
@@ -135,13 +176,17 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
     console.error('Registration failed:', error);
 
     // If an error occurs and there's an uploaded image, delete it
-    if (logoUrl) {
-      fs.unlinkSync(logoUrl);
+    if (imageUrl) {
+      fs.unlinkSync('uploads/' + imageUrl);
     }
 
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+
+
+
 
 
 
