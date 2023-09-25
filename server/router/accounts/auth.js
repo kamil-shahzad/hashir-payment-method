@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router()
 const User = require('../../models/User');
 const RegisterForm = require('../../models/RegisterForm'); 
-const AccessToken = require('../../models/AccesToken');
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const validator = require("./validator");
@@ -130,75 +129,6 @@ const upload = multer({ storage: storage });
 
 const fs = require('fs');
 
-// router.post('/registerform', upload.single('logo'), async (req, res) => {
-//   let imageUrl;
-
-//   try {
-//     const { comp_name, email, mobile, landline, website, address, reg_no, PaymentMethods } = req.body;
-//     const paymentMethodsArray = PaymentMethods.split('|').map(method => method.trim()); // Trim spaces
-
-//     // Check if req.file is defined before accessing its properties
-//     if (req.file) {
-//       imageUrl = req.file.filename;
-//     }
-
-//     const existingCompany = await RegisterForm.findOne({ email });
-
-//     if (existingCompany) {
-//       if (imageUrl) {
-//         fs.unlinkSync('uploads/' + imageUrl); // Delete the uploaded image
-//       }
-
-//       return res.status(400).json({ error: 'Company already registered' });
-//     }
-
-//     const user = new RegisterForm({
-//       comp_name,
-//       email,
-//       mobile,
-//       landline,
-//       website,
-//       address,
-//       logoUrl: imageUrl,
-//       reg_no,
-//       PaymentMethods: paymentMethodsArray
-//     });
-
-//     await user.save();
-
-//     res.json({ message: 'Registration successful', user });
-//   } catch (error) {
-//     console.error('Registration failed:', error);
-
-//     // If an error occurs and there's an uploaded image, delete it
-//     if (imageUrl) {
-//       fs.unlinkSync('uploads/' + imageUrl);
-//     }
-
-//     res.status(500).json({ error: 'Registration failed' });
-//   }
-// });
-
-let merchantCounter = 1000; // Starting 4-digit merchant ID
-
-function generateUniqueMerchantId() {
-  const uniqueMerchantId = merchantCounter;
-  merchantCounter++;
-  return uniqueMerchantId;
-}
-
-function generateShortUniqueKey() {
-  const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-  let key = '';
-  const keyLength = 6; // Adjust the length as needed
-
-  for (let i = 0; i < keyLength; i++) {
-    const randomIndex = Math.floor(Math.random() * characters.length);
-    key += characters.charAt(randomIndex);
-  }
-  return key;
-}
-
 router.post('/registerform', upload.single('logo'), async (req, res) => {
   let imageUrl;
 
@@ -215,7 +145,7 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
 
     if (existingCompany) {
       if (imageUrl) {
-        fs.unlinkSync('uploads/' + imageUrl); 
+        fs.unlinkSync('uploads/' + imageUrl); // Delete the uploaded image
       }
 
       return res.status(400).json({ error: 'Company already registered' });
@@ -230,9 +160,7 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
       address,
       logoUrl: imageUrl,
       reg_no,
-      PaymentMethods: paymentMethodsArray,
-      merchantId: generateUniqueMerchantId(), // Generate a unique 4-digit merchant ID
-      securedKey: generateShortUniqueKey() // Generate a short unique secured key
+      PaymentMethods: paymentMethodsArray
     });
 
     await user.save();
@@ -241,6 +169,7 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
   } catch (error) {
     console.error('Registration failed:', error);
 
+    // If an error occurs and there's an uploaded image, delete it
     if (imageUrl) {
       fs.unlinkSync('uploads/' + imageUrl);
     }
@@ -249,82 +178,8 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
   }
 });
 
-const generateAccessToken = () => {
-  const generateRandomToken = () => {
-    return Math.random().toString(36).substr(2, 40);
-  };
 
-  const expirationTimeInSeconds = 60; // Token expiration time in seconds (1 minute)
-  const expirationDate = new Date(Date.now() + expirationTimeInSeconds * 1000);
 
-  const formattedExpiration = expirationDate.toLocaleString('en-US', {
-    weekday: 'long',
-    month: 'long',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-    timeZone: 'Asia/Karachi' // Set the correct timezone for Pakistan
-  });
-
-  const token = generateRandomToken(); // Generate a random token
-
-  return {
-    token,
-    expiration: formattedExpiration,
-    expirationTimestamp: expirationDate // Store the expiration timestamp
-  };
-};
-
-router.post('/generateAccessToken', async (req, res) => {
-  const { merchant_id, secured_key } = req.body;
-
-  if (!merchant_id || !secured_key) {
-    return res.status(400).json({ error: "Merchant ID and secured key are required." });
-  }
-
-  try {
-    const company = await RegisterForm.findOne({ merchantId: merchant_id, securedKey: secured_key });
-
-    if (!company) {
-      return res.status(404).json({ error: "Merchant ID and secured key not found." });
-    }
-
-    // Generate the access token
-    const accessTokenInfo = generateAccessToken();
-
-    // Check if an AccessToken record exists for this company
-    let accessTokenRecord = await AccessToken.findOne({ reg_no: company.reg_no });
-
-    if (!accessTokenRecord) {
-      // Create a new AccessToken record if it doesn't exist
-      accessTokenRecord = new AccessToken({
-        companyName: company.comp_name,
-        reg_no: company.reg_no,
-        accessToken: accessTokenInfo.token,
-        timestamp: accessTokenInfo.expirationTimestamp // Store the expiration timestamp in the database
-      });
-
-      // Save the access token record
-      await accessTokenRecord.save();
-    } else {
-      // Update the existing AccessToken record
-      accessTokenRecord.accessToken = accessTokenInfo.token;
-      accessTokenRecord.timestamp = accessTokenInfo.expirationTimestamp;
-      await accessTokenRecord.save();
-    }
-
-    return res.status(200).json({
-      accessToken: accessTokenInfo.token,
-      expiration: accessTokenInfo.expiration,
-      companyName: company.comp_name,
-      registrationNumber: company.reg_no
-    });
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({ error: "Internal Server Error" });
-  }
-});
 
 
 
