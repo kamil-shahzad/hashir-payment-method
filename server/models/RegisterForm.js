@@ -13,6 +13,14 @@ const registerFormSchema = new mongoose.Schema({
     type: [String],
     required: true
   },
+  merchantId: {
+    type: Number,
+    unique: true
+  },
+  securedKey: {
+    type: String,
+    unique: true
+  }
 });
 
 const RegisterForm = mongoose.model('RegisterForm', registerFormSchema);
