@@ -75,7 +75,6 @@ router.post('/login', async (req, res) => {
     let userRecord = await User.findOne({ reg_no: reg_no });
 
     if (!userRecord) {
-      // If user record doesn't exist, save a new record
       userRecord = new User({
         companyName: comp_name,
         reg_no: reg_no,
@@ -134,7 +133,14 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
 
   try {
     const { comp_name, email, mobile, landline, website, address, reg_no, PaymentMethods } = req.body;
-    const paymentMethodsArray = PaymentMethods.split('|').map(method => method.trim()); // Trim spaces
+
+    const paymentMethodsMapped = {
+      0: 'easypaisa',
+      1: 'jazzcash',
+      2 : 'Hbl',
+    };
+
+    const mappedPaymentMethods = PaymentMethods.map(methodIndex => paymentMethodsMapped[methodIndex]);
 
     // Check if req.file is defined before accessing its properties
     if (req.file) {
@@ -160,7 +166,7 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
       address,
       logoUrl: imageUrl,
       reg_no,
-      PaymentMethods: paymentMethodsArray
+      PaymentMethods: mappedPaymentMethods  // Store updated payment methods
     });
 
     await user.save();
@@ -177,6 +183,8 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
+
+
 
 
 
