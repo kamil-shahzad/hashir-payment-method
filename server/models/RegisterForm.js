@@ -1,9 +1,10 @@
 const mongoose = require('mongoose');
-
 const registerFormSchema = new mongoose.Schema({
   comp_name: { type: String, required: true },
   email: { type: String, required: true },
   mobile: { type: String, required: true },
+  merchantId: { type: String, required: true },
+  securedKey: { type: String, required: true },
   landline: { type: String },
   website: { type: String },
   address: { type: String },
@@ -12,14 +13,6 @@ const registerFormSchema = new mongoose.Schema({
   PaymentMethods: {
     type: [String],
     required: true
-  },
-  merchantId: {
-    type: Number,
-    unique: true
-  },
-  securedKey: {
-    type: String,
-    unique: true
   }
 });
 
