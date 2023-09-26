@@ -205,7 +205,6 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
 });
 
 
-// Function to generate a registration number based on the registration count
 function generateRegistrationNumber() {
   return `REG-${registrationCounter}`;
 }
@@ -215,6 +214,80 @@ function generateRegistrationNumber() {
 
 
 
+
+router.post('/payment-platform', async (req, res) => {
+  const { secretKey, paymentMethod, merchantId, securedKey, comp_name, reg_no } = req.body;
+
+  if (!secretKey || !paymentMethod || !merchantId || !securedKey || !comp_name) {
+    res.json({ code: 101, message: 'Incomplete process' });
+    return;
+  }
+  try {
+    const user = await User.findOne({ reg_no : reg_no });
+
+    if (!user) {
+      res.json({ code: 102, message: 'Invalid Registration Number'});
+    } else {
+      const secret = user.token;
+      
+     
+      if (secretKey !== secret) {
+        res.json({ code: 909, message: 'Invalid token' });
+        return;
+      }
+
+      const tokenTimestamp = user.tokenExpiresAt.getTime(); 
+      const currentTimestamp = new Date().getTime(); 
+     
+      if (secretKey !== secret) {
+        res.json({ code: 909, message: 'Invalid token' });
+        return;
+      }
+  
+      if (currentTimestamp > tokenTimestamp + 60000) {
+        res.json({ code: 103, message: 'Token expired' });
+        return;
+      }
+
+      if (paymentMethod !== 'jazzcash') {
+        res.json({ code: 409, message: 'Payment method not verified' });
+        return;
+      }
+
+    const registerForm = await RegisterForm.findOne({ merchantId, securedKey });
+
+    if (!registerForm) {
+      res.json({ code: 411, message: 'Invalid merchant ID or secured key' });
+      return;
+    }
+
+      if (
+        paymentMethod === 'jazzcash' &&
+        merchantId === merchantId &&
+        securedKey === securedKey
+      ) {
+        res.json({ 
+          code: 200,
+          message: 'Complete process',
+          status: true,
+          parameters: {
+            secretKey,
+            paymentMethod,
+            merchantId,
+            securedKey,
+            comp_name,
+            reg_no,
+          }
+        });
+      } else {
+        res.json({ code: 104, message: 'Invalid parameters' });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ code: 500, message: 'Error processing request' });
+  }
+});
 
 
 
