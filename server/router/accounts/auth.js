@@ -212,8 +212,16 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
 
 router.post('/payment-platform', async (req, res) => {
   const { token, amount ,paymentId} = req.query;  
-  if (!token || !amount  || !paymentId) {
-    res.json({ code: 101, message: 'Token Paymentid, and amount are required' });
+  if (!token ) {
+    res.json({ code: 101, message: 'Token are required' });
+    return;
+  }
+  if (!amount ) {
+    res.json({ code: 101, message: 'Amount are required' });
+    return;
+  }
+  if (!paymentId ) {
+    res.json({ code: 101, message: 'Paymentid are required' });
     return;
   }
 
