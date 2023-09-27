@@ -35,7 +35,7 @@ app.use(express.json())
 
 //linking the routes
 app.use(require('./router/accounts/auth'))
-// app.use(require('./router/payments/paymentapis'))
+app.use(require('./router/payments/payment'))
 
 
 app.listen(8080, () => {

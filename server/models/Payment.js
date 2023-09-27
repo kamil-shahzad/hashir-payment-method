@@ -1,34 +1,12 @@
-const { number } = require('joi')
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
 
-const userSchema = new mongoose.Schema({
-    Basket_id:{
-        type: Number,
-        required: true,
-        unique: true, 
-    },
-    Merchant_id:{
-        type: Number,
-        required: true,
-        unique: true,
-    },
-    name:{
-        type: String,
-        required: true
-    },
-    Acesstoken:{
-        type: String,
-        required: true
-    },
-    Amount : {
-        type : Number,
-         required : true,
-    },
-    timestamp: {
-        type: Date,
-        default: Date.now,
-      },
-})
+const paymentMethodSchema = new mongoose.Schema({
+  p_id: { type: String, required: true }, // Payment method ID
+  paymentMethodName: { type: String, required: true }, // Payment method name
+  merchantId: { type: String, required: true }, // Merchant ID
+  secretKey: { type: String, required: true }, // Secret key
+  logoUrl: { type: String, required: false } // Logo URL (optional)
+});
 
-const Payment = mongoose.model('PAYMENT', userSchema)
-module.exports = Payment
+const PaymentMethod = mongoose.model('PaymentMethod', paymentMethodSchema);
+module.exports = PaymentMethod;
