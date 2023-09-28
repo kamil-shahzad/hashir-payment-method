@@ -10,7 +10,6 @@ require('dotenv').config({ path: './config.env' });
 const multer = require('multer');
 
 
-
 router.get('/', (req, res) => {
   res.send('Backend running from the router')
 })
@@ -71,11 +70,8 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign({ reg_no: user.reg_no, comp_name: user.comp_name }, secretKey, { expiresIn });
 
-    // Check if the user record already exists in the User collection
-    let userRecord = await User.findOne({ reg_no: reg_no });
-
-    if (!userRecord) {
-      userRecord = new User({
+      // Save token, company name, registration number, and token expiration in the User collection
+      const userRecord = new User({
         companyName: comp_name,
         reg_no: reg_no,
         token: token,
@@ -86,20 +82,8 @@ router.post('/login', async (req, res) => {
 
       await userRecord.save();
     } else {
-      // If user record exists, update the token and expiration time
-      userRecord.token = token;
-      userRecord.tokenExpiresAt = new Date(Date.now() + expiresIn * 1000);
-      await userRecord.save();
+      return res.status(400).send("Invalid company name.");
     }
-
-    return res.status(200).json({
-      message: "Login successful!",
-      name: user.comp_name,
-      token,
-      expiresIn,
-      merchantId: user.merchantId, // Include merchant ID in the response
-      securedKey: user.securedKey // Include secured key in the response
-    });
   } catch (error) {
     console.error(error);
     return res.status(500).send("Internal Server Error");
@@ -108,25 +92,206 @@ router.post('/login', async (req, res) => {
 
 
 
+//before error codes payment-platform
+
+// router.post('/payment-platform', async (req, res) => {
+//   const { secretKey, paymentMethod, merchantId, securedKey, comp_name, reg_no } = req.body;
+//   if (!secretKey || !paymentMethod || !merchantId || !securedKey || !comp_name) {
+//     res.json({ message: 'Incomplete process' });
+//     return;
+//   }
+//   try {
+//     // Find the user with the specified comp_name in the database
+//     const user = await User.findOne({ reg_no : reg_no });
+
+//     if (!user) {
+//       res.json({ message: 'Invalid Registeration Number'});
+//     } else {
+//       // Retrieve the registrationNumber from the user
+//       const secret = user.token;
+
+//       if (secretKey !== secret) {
+//         res.json({ message: 'Invalid token', status: false });
+//         return;
+//       }
+//         // Validate if token has expired (older than one minute)
+//         const currentTimestamp = new Date().getTime();
+//         const tokenTimestamp = new Date(secret).getTime();
+  
+//         if (tokenTimestamp < currentTimestamp - 60000) {
+//           res.json({ message: 'Token expired' });
+//           return;
+//         }
+//       if (
+//         secretKey === secret &&
+//         paymentMethod === 'jazzcash' &&
+//         merchantId === '2' &&
+//         securedKey === '2'
+//       ) {
+//         res.json({ 
+//           message: 'Complete process',
+//           status: true,
+//           parameters: {
+//             secret,
+//             paymentMethod,
+//             merchantId,
+//             securedKey,
+//             comp_name,
+//             reg_no,
+//           }
+//         });
+//       } else {
+//         res.json({ message: 'Invalid parameters', status: false });
+//       }
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.json({ message: 'Error processing request' });
+//   }
+// });
 
 
+//payment-platform with error code
 
-const path = require('path');
+router.post('/payment-platform', async (req, res) => {
+  const { secretKey, paymentMethod, merchantId, securedKey, comp_name, reg_no } = req.body;
 
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, 'uploads/');
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + ext);
+  if (!secretKey || !paymentMethod || !merchantId || !securedKey || !comp_name) {
+    res.json({ code: 101, message: 'Incomplete process' });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ reg_no : reg_no });
+
+    if (!user) {
+      res.json({ code: 102, message: 'Invalid Registration Number'});
+    } else {
+      const secret = user.token;
+      
+     
+      // Validate if provided secretKey matches the stored token
+      if (secretKey !== secret) {
+        res.json({ code: 909, message: 'Invalid token' });
+        return;
+      }
+
+      // Validate if token has expired (older than one minute)
+      const tokenTimestamp = user.tokenExpiresAt.getTime(); // Timestamp of token creation
+      const currentTimestamp = new Date().getTime(); // Current time in milliseconds
+     
+      // Validate if provided secretKey matches the stored token
+      if (secretKey !== secret) {
+        res.json({ code: 909, message: 'Invalid token' });
+        return;
+      }
+  
+      // Validate if token has expired (older than one minute)
+      if (currentTimestamp > tokenTimestamp + 60000) {
+        res.json({ code: 103, message: 'Token expired' });
+        return;
+      }
+
+      if (paymentMethod !== 'jazzcash') {
+        res.json({ code: 409, message: 'Payment method not verified' });
+        return;
+      }
+  
+      // Additional checks for merchantId and securedKey
+      if (merchantId !== '2' || securedKey !== '2') {
+        res.json({ code: 410, message: 'Invalid merchant ID or secured key' });
+        return;
+      }
+
+      if (
+        paymentMethod === 'jazzcash' &&
+        merchantId === '2' &&
+        securedKey === '2'
+      ) {
+        res.json({ 
+          code: 200,
+          message: 'Complete process',
+          status: true,
+          parameters: {
+            secretKey,
+            paymentMethod,
+            merchantId,
+            securedKey,
+            comp_name,
+            reg_no,
+          }
+        });
+      } else {
+        res.json({ code: 104, message: 'Invalid parameters' });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    res.json({ code: 500, message: 'Error processing request' });
   }
 });
 
-const upload = multer({ storage: storage });
+
+//before payment platform...
+
+// router.post('/payment-platform', async (req, res) => {
+//   const secretKey = req.header;
+//   const { paymentMethod, merchantId, securedKey, comp_name, reg_no } = req.body;
+//   if (!secretKey || !paymentMethod || !merchantId || !securedKey || !comp_name) {
+//     res.json({ message: 'Incomplete process' });
+//     return;
+//   }
+//   try {
+//     // Find the user with the specified comp_name in the database
+//     const user = await User.findOne({ reg_no : reg_no });
+
+//     if (!user) {
+//       res.json({ message: 'Invalid Registeration Number'});
+//     } else {
+//       // Retrieve the registrationNumber from the user
+//       const secret = user.token;
+//         // Validate if token has expired (older than one minute)
+//         const currentTimestamp = new Date().getTime();
+//         const tokenTimestamp = new Date(secret).getTime();
+  
+//         if (tokenTimestamp < currentTimestamp - 60000) {
+//           res.json({ message: 'Token expired' });
+//           return;
+//         }
+  
+     
+//       if (
+//         secretKey === secret &&
+//         paymentMethod === 'jazzcash' &&
+//         merchantId === '2' &&
+//         securedKey === '2'
+//       ) {
+//         res.json({ 
+//           message: 'Complete process',
+//           status: "1",
+//           parameters: {
+//             secretKey,
+//             paymentMethod,
+//             merchantId,
+//             securedKey,
+//             comp_name,
+//             reg_no,
+//           }
+//         });
+//       } else {
+//         res.json({ message: 'Invalid parameters' });
+//       }
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.json({ message: 'Error processing request' });
+//   }
+// });
+
+const upload = multer({ dest: 'uploads/' }); 
 
 const fs = require('fs');
+
 
 router.post('/registerform', upload.single('logo'), async (req, res) => {
   let imageUrl;
@@ -170,7 +335,6 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
       securedKey,
       PaymentMethods: mappedPaymentMethods  // Store updated payment methods
     });
-
     await user.save();
 
     res.json({ message: 'Registration successful', user });
@@ -185,93 +349,6 @@ router.post('/registerform', upload.single('logo'), async (req, res) => {
     res.status(500).json({ error: 'Registration failed' });
   }
 });
-
-router.post('/payment-platform', async (req, res) => {
-  const { secretKey, paymentMethod, merchantId, securedKey, comp_name, reg_no } = req.body;
-
-  if (!secretKey || !paymentMethod || !merchantId || !securedKey || !comp_name) {
-    res.json({ code: 101, message: 'Incomplete process' });
-    return;
-  }
-  try {
-    const user = await User.findOne({ reg_no : reg_no });
-
-    if (!user) {
-      res.json({ code: 102, message: 'Invalid Registration Number'});
-    } else {
-      const secret = user.token;
-      
-     
-      // Validate if provided secretKey matches the stored token
-      if (secretKey !== secret) {
-        res.json({ code: 909, message: 'Invalid token' });
-        return;
-      }
-
-      // Validate if token has expired (older than one minute)
-      const tokenTimestamp = user.tokenExpiresAt.getTime(); // Timestamp of token creation
-      const currentTimestamp = new Date().getTime(); // Current time in milliseconds
-     
-      // Validate if provided secretKey matches the stored token
-      if (secretKey !== secret) {
-        res.json({ code: 909, message: 'Invalid token' });
-        return;
-      }
-  
-      // Validate if token has expired (older than one minute)
-      if (currentTimestamp > tokenTimestamp + 60000) {
-        res.json({ code: 103, message: 'Token expired' });
-        return;
-      }
-
-      if (paymentMethod !== 'jazzcash') {
-        res.json({ code: 409, message: 'Payment method not verified' });
-        return;
-      }
-
-    // Validate merchantId and securedKey from the database
-    const registerForm = await RegisterForm.findOne({ merchantId, securedKey });
-
-    if (!registerForm) {
-      res.json({ code: 411, message: 'Invalid merchant ID or secured key' });
-      return;
-    }
-
-      // Additional checks for merchantId and securedKey
-      // if (merchantId !== '2' || securedKey !== '2') {
-      //   res.json({ code: 410, message: 'Invalid merchant ID or secured key' });
-      //   return;
-      // }
-
-      if (
-        paymentMethod === 'jazzcash' &&
-        merchantId === merchantId &&
-        securedKey === securedKey
-      ) {
-        res.json({ 
-          code: 200,
-          message: 'Complete process',
-          status: true,
-          parameters: {
-            secretKey,
-            paymentMethod,
-            merchantId,
-            securedKey,
-            comp_name,
-            reg_no,
-          }
-        });
-      } else {
-        res.json({ code: 104, message: 'Invalid parameters' });
-      }
-    }
-  } catch (error) {
-    console.error(error);
-    res.json({ code: 500, message: 'Error processing request' });
-  }
-});
-
-
 
 
 
