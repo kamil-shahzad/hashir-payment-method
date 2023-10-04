@@ -4,6 +4,7 @@ const User = require('../../models/User');
 const RegisterForm = require('../../models/RegisterForm'); 
 const PaymentMethod = require('../../models/Payment');
 const Amount = require('../../models/Amount'); 
+const PaymentTransaction = require('../../models/Payment');
 const _ = require("lodash");
 const bcrypt = require("bcrypt");
 const validator = require("./validator");
@@ -277,9 +278,13 @@ router.get('/get-details', async (req, res) => {
 
   // console.log(paymentMethodIds);
 
-  if (!token || !paymentMethodIds || paymentMethodIds.length === 0) {
-    return res.json({ code: 101, message: 'Token and payment method IDs are required' });
+  if (!token) {
+    return res.json({ code: 101, message: 'Token is required' });
   }
+  if (!paymentMethodIds || paymentMethodIds.length === 0) {
+    return res.json({ code: 101, message: 'payment method IDs are required' });
+  }
+  
 
   const paymentMethodIdArray = Array.isArray(paymentMethodIds) ? paymentMethodIds : [paymentMethodIds];
 
@@ -352,6 +357,65 @@ router.get('/get-payment-platform', async (req, res) => {
       message: 'Payment methods retrieved successfully',
       companyName,
       paymentMethods,
+    });
+  } catch (error) {
+    console.error(error);
+    res.json({ code: 500, message: 'Error processing request' });
+  }
+});
+
+
+router.post('/process-payment', async (req, res) => {
+  const { token, cvv, cardDetail, cardExpiry, amount } = req.query;
+
+  if (!token ) {
+    res.json({ code: 101, message: 'Token are required' });
+    return;
+  }
+  if (!cvv ) {
+    res.json({ code: 101, message: 'CVV  are required' });
+    return;
+  }
+  if (!cardDetail) {
+    res.json({ code: 101, message: 'Card details are required' });
+    return;
+  }
+  if (!cardExpiry) {
+    res.json({ code: 101, message: 'Card expiry are required' });
+    return;
+  }
+  if (!amount) {
+    res.json({ code: 101, message: 'Amount are required' });
+    return;
+  }
+
+  try {
+    const user = await User.findOne({ token });
+
+    if (!user) {
+      res.json({ code: 102, message: 'Invalid Token' });
+      return;
+    }
+
+    const { companyName } = user;
+
+    // Create a new payment transaction record
+    const paymentTransaction = new PaymentTransaction({
+      companyName,
+      cvv,
+      cardDetail,
+      cardExpiry,
+      amount
+    });
+
+    // Save the payment transaction record
+    await paymentTransaction.save();
+
+    res.json({
+      code: 200,
+      message: 'Payment information saved successfully',
+      companyName,
+      paymentTransaction
     });
   } catch (error) {
     console.error(error);
