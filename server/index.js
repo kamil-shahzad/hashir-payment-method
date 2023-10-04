@@ -30,6 +30,9 @@ mongoose
 
 //middlewares
 // app.use(req, res, next)
+app.get('/', (req, res) => {
+  res.send('API is running'); // Send a message indicating API is running for the root URL
+});
 
 app.use(express.json())
 
