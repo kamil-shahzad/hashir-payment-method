@@ -90,6 +90,10 @@ import CkEditor from './components/Forms/CkEditor/CkEditor'
 import Pickers from './components/Forms/Pickers/Pickers'
 import FormValidation from "./components/Forms/FormValidation/FormValidation";
 
+
+//payment Forms:
+
+
 /// Pages
 import Registration from './pages/Registration'
 import Login from './pages/Login'
@@ -103,6 +107,7 @@ import Todo from './pages/Todo';
 
 //Scroll To Top
 import ScrollToTop from './layouts/ScrollToTop';
+import { Jazzcash } from './PaymentForms/Jazzcash'
 
 
 const Markup = () => {
@@ -182,6 +187,9 @@ const Markup = () => {
 
     /// Form
     
+    //payment form
+    {url: 'jazzcash' , component: <Jazzcash/>},
+
     //{ url: 'form-redux', component: ReduxForm },
     //{ url: 'form-redux-wizard', component: WizardForm },
     { url: 'form-element', component: <Element/> },

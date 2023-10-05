@@ -46,6 +46,17 @@ export const MenuList = [
             },
         ],
     },
+    {
+        title: 'Payment Forms',	
+        classsChange: 'mm-collapse',		
+        iconStyle: <i className="flaticon-381-networking" />,
+        content: [            
+            {
+                title: 'Jazzcash',
+                to: 'jazzcash',					
+            },
+        ],
+    },
    
     
     //Apps

@@ -1,91 +1,137 @@
-import React, { Fragment } from 'react'
+import React, { Fragment, useState } from 'react'
 
 import PageTItle from '../../../layouts/PageTitle'
+
 import { SplitButton, ButtonGroup, Dropdown } from 'react-bootstrap'
 import DropdownMultiselect from 'react-multiselect-dropdown-bootstrap'
 
 const Element = () => {
+  const [errors, setErrors] = useState({});
+  const [formData, setFormData] = useState({
+    companyName: '',
+    province: '',
+    city: '',
+    address: '',
+    logo: null,
+    webUrl: '',
+    ceoName: '',
+    ceoNum: '',
+    ceoEmail: '',
+    pocName: '',
+    pocNum: '',
+    pocDes: '',
+    dailyAvg: '',
+    maxAmount: '',
+    maxProduct: '',
+    ipServer: '',
+    userName: '',
+    password: ''
+  });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData({
+      ...formData,
+      [name]: value,
+    });
+  };
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+
+    // Check file type
+    if (!file.type.startsWith('image/')) {
+        alert('Please upload an image file.');
+        return;
+    }
+
+    // Check file size (example: max size of 5MB)
+    if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit.');
+        return;
+    }
+
+    setFormData({
+        ...formData,
+        logo: file,
+    });
+};
+  const validate = () => {
+    const newErrors = {};
+
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = 'Company Name is required';
+    }
+
+
+
+    return newErrors;
+  };
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      console.log("i am here");
+        const response = await fetch('http://payment.hashirtechnologies.com/api/registerform', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData),
+        });
+        console.log("hello",response);
+
+        if (!response.ok) {
+            throw new Error('Network response was not ok');
+        }
+
+        console.log('Data sent successfully!');
+    } catch (error) {
+        console.error('Error sending data:', error);
+    }
+};
+
   return (
     <Fragment>
       <PageTItle activeMenu='Element' motherMenu='Form' />
-
       <div className='row'>
         <div className='col-xl-6 col-lg-6'>
           <div className='card'>
             <div className='card-header'>
-              <h4 className='card-title'>Basic Info</h4>
+              <h4 className='card-title'>Basic Information</h4>
             </div>
             <div className='card-body'>
               <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
+                <form onSubmit={handleSubmit}>
                   <div className='form-group'>
                     <input
                       type='text'
                       className='form-control input-default '
                       placeholder='Company Name'
+                      name='companyName'
+                      value={formData.companyName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  {errors.companyName && (
+                    <div className='error-message'>{errors.companyName}s</div>
+                  )}
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='Province'
+                      name='province'
+                      value={formData.province}
+                      onChange={handleChange}
                     />
                   </div>
                   <div className='form-group'>
                     <input
                       type='text'
                       className='form-control input-default '
-                      placeholder='Password'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='text'
-                      className='form-control input-default '
-                      placeholder='Merchant ID'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='text'
-                      className='form-control input-default '
-                      placeholder='Secret Key'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='text'
-                      className='form-control input-rounded'
-                      placeholder='Email'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='number'
-                      className='form-control input-rounded'
-                      placeholder='Mobile Number'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='number'
-                      className='form-control input-rounded'
-                      placeholder='Landline Number'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='number'
-                      className='form-control input-rounded'
-                      placeholder='Address'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='text'
-                      className='form-control input-rounded'
-                      placeholder='Registeration Number'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='text'
-                      className='form-control input-rounded'
-                      placeholder='ServerIP'
+                      placeholder='City Name'
+                      name='city'
+                      value={formData.city}
+                      onChange={handleChange}
                     />
                   </div>
                   <div className='form-group'>
@@ -93,6 +139,78 @@ const Element = () => {
                       type='file'
                       className='form-control input-rounded'
                       placeholder='Upload Logo'
+                      value={formData.logo}
+                      onChange={handleFileChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='Web URL'
+                      name='webUrl'
+                      value={formData.webUrl}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='CEO NAME'
+                      name='ceoname'
+                      value={formData.ceoName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='CEO EMAIL'
+                      name='ceo_email'
+                      value={formData.ceoEmail}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='number'
+                      className='form-control input-default '
+                      placeholder='ceo_number'
+                      name='ceonum'
+                      value={formData.ceoNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='POC Name'
+                      name='pocname'
+                      value={formData.pocName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='POC Number'
+                      name='pocnumber'
+                      value={formData.pocNum}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='POC Designation'
+                      name='poc_desig'
+                      value={formData.pocDes}
+                      onChange={handleChange}
                     />
                   </div>
                 </form>
@@ -100,168 +218,10 @@ const Element = () => {
             </div>
           </div>
         </div>
-        {/* <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Checkbox</h4>
-            </div>
-            <div className='card-body'>
-              <div className='row'>
-                <div className='col-xl-4 col-xxl-6 col-6'>
-                  <div className='custom-control custom-checkbox mb-3'>
-                    <input
-                      type='checkbox'                      
-                      className='custom-control-input'
-                      id='customCheckBox1'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox1'
-                    >
-                      Checkbox 1
-                    </label>
-                  </div>
-                </div>
-                <div className='col-xl-4 col-xxl-6 col-6'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-info'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox2'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox2'
-                    >
-                      Checkbox 2
-                    </label>
-                  </div>
-                </div>
-
-                <div className='col-xl-4 col-xxl-6 col-6'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-success'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox3'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox3'
-                    >
-                      Checkbox 3
-                    </label>
-                  </div>
-                </div>
-                <div className='col-xl-4 col-xxl-6 col-6'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-warning'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox4'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox4'
-                    >
-                      Checkbox 4
-                    </label>
-                  </div>
-                </div>
-                <div className='col-xl-4 col-xxl-6 col-6'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-danger'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox5'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox5'
-                    >
-                      Checkbox 5
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className='row'>
-                <div className='col'>
-                  <div className='custom-control custom-checkbox mb-3 check-xs'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox6'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox6'
-                    ></label>
-                  </div>
-                </div>
-                <div className='col'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-info'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox7'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox7'
-                    ></label>
-                  </div>
-                </div>
-                <div className='col'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-success check-lg'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox8'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox8'
-                    ></label>
-                  </div>
-                </div>
-                <div className='col'>
-                  <div className='custom-control custom-checkbox mb-3 checkbox-warning check-xl'>
-                    <input
-                      type='checkbox'
-                      defaultChecked
-                      className='custom-control-input'
-                      id='customCheckBox9'
-                      required
-                    />
-                    <label
-                      className='custom-control-label'
-                      htmlFor='customCheckBox9'
-                    ></label>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div> */}
         <div className='col-xl-6 col-lg-6'>
           <div className='card'>
             <div className='card-header'>
-              <h4 className='card-title'>Transaction Details</h4>
+              <h4 className='card-title'>Transactions Details</h4>
             </div>
             <div className='card-body'>
               <div className='basic-form'>
@@ -270,46 +230,79 @@ const Element = () => {
                     <input
                       type='Number'
                       className='form-control input-default '
-                      placeholder='Average Trasaction'
+                      placeholder='Daily Trasaction Average'
+                      value={formData.dailyAvg}
+                      onChange={handleChange}
                     />
                   </div>
                   <div className='form-group'>
                     <input
                       type='Number'
                       className='form-control input-default '
-                      placeholder='Monthly Transaction'
+                      placeholder='Max Trasaction Daily'
+                      value={formData.maxAmount}
+                      onChange={handleChange}
                     />
                   </div>
                   <div className='form-group'>
                     <input
                       type='Number'
                       className='form-control input-default '
-                      placeholder='GST'
-                    />
-                  </div>
-                  <div className='form-group'>
-                    <input
-                      type='Number'
-                      className='form-control input-default '
-                      placeholder='Price of Expensive Product'
+                      placeholder='Max One Product Daily'
+                      value={formData.maxProduct}
+                      onChange={handleChange}
                     />
                   </div>
                 </form>
               </div>
             </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
             <div className='card-header'>
-              <h4 className='card-title'>Payments</h4>
+              <div className='card'>
+                <h4 className='card-title'>Technical Details</h4>
+              </div></div>
+            <div className='card-body'>
+              <div className='basic-form'>
+                <form onSubmit={(e) => e.preventDefault()}>
+                  <div className='form-group'>
+                    <input
+                      type='Number'
+                      className='form-control input-default '
+                      placeholder='IP-Address'
+                      value={formData.ipServer}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='text'
+                      className='form-control input-default '
+                      placeholder='Username'
+                      value={formData.userName}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className='form-group'>
+                    <input
+                      type='password'
+                      className='form-control input-default '
+                      placeholder='Password'
+                      value={formData.password}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </form>
+              </div>
             </div>
+            <div className='card-header'>
+              <div className='card'>
+                <h4 className='card-title'>Payment Platforms</h4>
+              </div></div>
             <div className='card-body'>
               <div className='row'>
                 <div className='col-xl-4 col-xxl-6 col-6'>
                   <div className='custom-control custom-checkbox mb-3'>
                     <input
-                      type='checkbox'                      
+                      type='checkbox'
                       className='custom-control-input'
                       id='customCheckBox1'
                       required
@@ -318,7 +311,7 @@ const Element = () => {
                       className='custom-control-label'
                       htmlFor='customCheckBox1'
                     >
-                    EasyPaisa
+                      EasyPaisa
                     </label>
                   </div>
                 </div>
@@ -392,974 +385,19 @@ const Element = () => {
                   </div>
                 </div>
               </div>
-              </div>
+            </div>
           </div>
         </div>
         <div className='col-xl-6 col-lg-6'>
           <div className='card'>
             <div className='card-header'>
               <h4 className='card-title'>Confirmation</h4>
-              <button type='submit' className='btn btn-primary mb-2'>
-                        Submit
-                      </button>  
+              <button onClick={handleSubmit} type='submit' className='btn btn-primary mb-2'>
+                Submit
+              </button>
             </div>
           </div>
         </div>
-        
-        
-        {/* <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Inline Checkboxes</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-group'>
-                    <div className='form-check form-check-inline'>
-                      <label className='form-check-label'>
-                        <input
-                          type='checkbox'
-                          className='form-check-input'
-                          value=''
-                          defaultChecked
-                        />
-                        Option 1
-                      </label>
-                    </div>
-                    <div className='form-check form-check-inline'>
-                      <label className='form-check-label'>
-                        <input
-                          type='checkbox'
-                          className='form-check-input'
-                          value=''
-                        />
-                        Option 2
-                      </label>
-                    </div>
-                    <div className='form-check form-check-inline disabled'>
-                      <label className='form-check-label'>
-                        <input
-                          type='checkbox'
-                          className='form-check-input'
-                          value=''
-                          disabled
-                        />
-                        Disabled
-                      </label>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Radio Buttons</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-group mb-0'>
-                    <div className='radio'>
-                      <label>
-                        <input type='radio' name='optradio' /> Option 1
-                      </label>
-                    </div>
-                    <div className='radio'>
-                      <label>
-                        <input type='radio' name='optradio' /> Option 2
-                      </label>
-                    </div>
-                    <div className='radio disabled'>
-                      <label>
-                        <input type='radio' name='optradio' disabled /> Option 3
-                      </label>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Inline Radio </h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-group mb-0'>
-                    <label className='radio-inline mr-3'>
-                      <input type='radio' name='optradio' /> Option 1
-                    </label>
-                    <label className='radio-inline mr-3'>
-                      <input type='radio' name='optradio' /> Option 2
-                    </label>
-                    <label className='radio-inline mr-3'>
-                      <input type='radio' name='optradio' /> Option 3
-                    </label>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>readOnly</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-group'>
-                    <input
-                      className='form-control'
-                      type='text'
-                      placeholder='readOnly input here…'
-                      readOnly
-                    />
-                  </div>
-                  <div className='form-group row'>
-                    <label className='col-sm-3 col-form-label'>Email</label>
-                    <div className='col-sm-9'>
-                      <input
-                        type='text'
-                        readOnly
-                        className='form-control-plaintext'
-                        value='email@example.com'
-                      />
-                    </div>
-                  </div>
-                  <div className='form-group row'>
-                    <label className='col-sm-3 col-form-label'>Password</label>
-                    <div className='col-sm-9'>
-                      <input
-                        type='password'
-                        className='form-control'
-                        placeholder='Password'
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Inline Form</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form
-                  className='form-inline'
-                  onSubmit={(e) => e.preventDefault()}
-                >
-                  <div className='form-group mb-2'>
-                    <label className='sr-only'>Email</label>
-                    <input
-                      type='text'
-                      readOnly
-                      className='form-control-plaintext'
-                      value='email@example.com'
-                    />
-                  </div>
-                  <div className='form-group mx-sm-3 mb-2'>
-                    <label className='sr-only'>Password</label>
-                    <input
-                      type='password'
-                      className='form-control'
-                      placeholder='Password'
-                    />
-                  </div>
-                  <button type='submit' className='btn btn-primary mb-2'>
-                    Confirm identity
-                  </button>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Form grid</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='row'>
-                    <div className='col-sm-6'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='First name'
-                      />
-                    </div>
-                    <div className='col-sm-6 mt-2 mt-sm-0'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='Last name'
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Form Row</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-row'>
-                    <div className='col-sm-6'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='First name'
-                      />
-                    </div>
-                    <div className='col-sm-6 mt-2 mt-sm-0'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='Last name'
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Form Label Size</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-group row'>
-                    <label className='col-sm-2 col-form-label col-form-label-sm'>
-                      Email
-                    </label>
-                    <div className='col-sm-10'>
-                      <input
-                        type='email'
-                        className='form-control form-control-sm'
-                        placeholder='col-form-label-sm'
-                      />
-                    </div>
-                  </div>
-                  <div className='form-group row'>
-                    <label className='col-sm-2 col-form-label'>Email</label>
-                    <div className='col-sm-10'>
-                      <input
-                        type='email'
-                        className='form-control'
-                        placeholder='col-form-label'
-                      />
-                    </div>
-                  </div>
-                  <div className='form-group row'>
-                    <label className='col-sm-2 col-form-label col-form-label-lg'>
-                      Email
-                    </label>
-                    <div className='col-sm-10'>
-                      <input
-                        type='email'
-                        className='form-control form-control-lg'
-                        placeholder='col-form-label-lg'
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Column size</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-row'>
-                    <div className='col-sm-7'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='City'
-                      />
-                    </div>
-                    <div className='col mt-2 mt-sm-0'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='State'
-                      />
-                    </div>
-                    <div className='col mt-2 mt-sm-0'>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='Zip'
-                      />
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-12'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Auto-sizing</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-row align-items-center'>
-                    <div className='col-auto'>
-                      <label className='sr-only'>Name</label>
-                      <input
-                        type='text'
-                        className='form-control mb-2'
-                        placeholder='Jane Doe'
-                      />
-                    </div>
-                    <div className='col-auto'>
-                      <label className='sr-only'>Username</label>
-                      <div className='input-group mb-2'>
-                        <div className='input-group-prepend'>
-                          <div className='input-group-text'>@</div>
-                        </div>
-                        <input
-                          type='text'
-                          className='form-control'
-                          placeholder='Username'
-                        />
-                      </div>
-                    </div>
-                    <div className='col-auto'>
-                      <div className='form-check mb-2'>
-                        <input className='form-check-input' type='checkbox' />
-                        <label className='form-check-label'>Remember me</label>
-                      </div>
-                    </div>
-                    <div className='col-12'>
-                      <button type='submit' className='btn btn-primary mb-2'>
-                        Submit
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Custom Select</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <div className='form-row align-items-center'>
-                    <div className='col-auto my-1'>
-                      <div className='form-group d-flex align-items-center'>
-                        <label className='mr-sm-2'>Preference</label>
-                        <select
-                          defaultValue={'option'}
-                          className='form-control form-control-lg'
-                          id='inlineFormCustomSelect'
-                        >
-                          <option value='option' disabled>
-                            Choose...
-                          </option>
-                          <option value='1'>One</option>
-                          <option value='2'>Two</option>
-                          <option value='3'>Three</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Disabled forms</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form onSubmit={(e) => e.preventDefault()}>
-                  <fieldset disabled>
-                    <div className='form-group'>
-                      <label>Disabled input</label>
-                      <input
-                        type='text'
-                        className='form-control'
-                        placeholder='Disabled input'
-                      />
-                    </div>
-                    <div className='form-group'>
-                      <label>Disabled select menu</label>
-                      <select defaultValue={'option'} className='form-control'>
-                        <option>Disabled select</option>
-                      </select>
-                    </div>
-                    <div className='form-check'>
-                      <input
-                        className='form-check-input'
-                        type='checkbox'
-                        disabled
-                      />
-                      <label className='form-check-label'>
-                        Can't check this
-                      </label>
-                    </div>
-                    <button type='submit' className='btn btn-primary mt-3'>
-                      Submit
-                    </button>
-                  </fieldset>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Input Group</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3 input-warning-o'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>@</span>
-                    </div>
-                    <input
-                      type='text'
-                      className='form-control'
-                      placeholder='Username'
-                    />
-                  </div>
-                  <div className='input-group mb-3 input-success-o'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>@</span>
-                    </div>
-                    <input
-                      type='text'
-                      className='form-control'
-                      placeholder='Username'
-                    />
-                  </div>
-                  <div className='input-group mb-3 input-primary'>
-                    <input
-                      type='text'
-                      className='form-control'
-                      placeholder="Recipient's username"
-                    />
-                    <div className='input-group-append'>
-                      <span className='input-group-text'>@example.com</span>
-                    </div>
-                  </div>
-
-                  <label>Your vanity URL</label>
-                  <div className='input-group mb-3  input-success'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>
-                        https://example.com
-                      </span>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group mb-3  input-info'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>$</span>
-                    </div>
-                    <input type='text' className='form-control' />
-                    <div className='input-group-append'>
-                      <span className='input-group-text'>.00</span>
-                    </div>
-                  </div>
-
-                  <div className='input-group   input-danger'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>With textarea</span>
-                    </div>
-                    <textarea className='form-control'></textarea>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Input Group Size</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group input-group-sm mb-3'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>Small</span>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>Default</span>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group input-group-lg'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>Large</span>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Checkboxes and radios</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <div className='input-group-text'>
-                        <input type='checkbox' />
-                      </div>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group'>
-                    <div className='input-group-prepend'>
-                      <div className='input-group-text'>
-                        <input type='radio' />
-                      </div>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Multiple inputs</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>
-                        First and last name
-                      </span>
-                    </div>
-                    <input type='text' className='form-control' />
-                    <input type='text' className='form-control' />
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Multiple addons</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>$</span>
-                      <span className='input-group-text'>0.00</span>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group'>
-                    <input type='text' className='form-control' />
-                    <div className='input-group-append'>
-                      <span className='input-group-text'>$</span>
-                      <span className='input-group-text'>0.00</span>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Button addons</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group mb-3'>
-                    <input type='text' className='form-control' />
-                    <div className='input-group-append'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                  </div>
-
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group'>
-                    <input type='text' className='form-control' />
-                    <div className='input-group-append'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Buttons with dropdowns</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <Dropdown className='input-group-prepend'>
-                      <Dropdown.Toggle
-                        variant=''
-                        className='btn btn-primary dropdown-toggle'
-                        type='button'
-                        data-toggle='dropdown'
-                      >
-                        Dropdown
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className='dropdown-menu'>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Action
-                        </Dropdown.Item>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Another action
-                        </Dropdown.Item>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Something else here
-                        </Dropdown.Item>
-                        <div
-                          role='separator'
-                          className='dropdown-divider'
-                        ></div>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Separated link
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group'>
-                    <input type='text' className='form-control' />
-                    <Dropdown className='input-group-prepend'>
-                      <Dropdown.Toggle
-                        variant=''
-                        className='btn btn-primary dropdown-toggle'
-                        type='button'
-                        data-toggle='dropdown'
-                      >
-                        Dropdown
-                      </Dropdown.Toggle>
-                      <Dropdown.Menu className='dropdown-menu'>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Action
-                        </Dropdown.Item>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Another action
-                        </Dropdown.Item>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Something else here
-                        </Dropdown.Item>
-                        <div
-                          role='separator'
-                          className='dropdown-divider'
-                        ></div>
-                        <Dropdown.Item className='dropdown-item' to='#'>
-                          Separated link
-                        </Dropdown.Item>
-                      </Dropdown.Menu>
-                    </Dropdown>{' '}
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Segmented buttons</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <SplitButton
-                      className='input-group-prepend ml-1'
-                      as={ButtonGroup}
-                      variant='primary'
-                      id='dropdown-button-drop-dwon'
-                      drop='dwon'
-                      title='Action'
-                    >
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Action
-                      </Dropdown.Item>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Another action
-                      </Dropdown.Item>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Something else here
-                      </Dropdown.Item>
-                      <div role='separator' className='dropdown-divider'></div>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Separated link
-                      </Dropdown.Item>
-                    </SplitButton>
-                    <input type='text' className='form-control' />
-                  </div>
-
-                  <div className='input-group'>
-                    <input type='text' className='form-control' />
-                    <SplitButton
-                      className='input-group-prepend ml-1'
-                      as={ButtonGroup}
-                      variant='primary'
-                      id='dropdown-button-drop-dwon'
-                      drop='dwon'
-                      title='Action'
-                    >
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Action
-                      </Dropdown.Item>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Another action
-                      </Dropdown.Item>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Something else here
-                      </Dropdown.Item>
-                      <div role='separator' className='dropdown-divider'></div>
-                      <Dropdown.Item className='dropdown-item' to='#'>
-                        Separated link
-                      </Dropdown.Item>
-                    </SplitButton>{' '}
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Custom select</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form'>
-                <form action='#'>
-                  <div className='input-group mb-3' >
-                    <div className='input-group-prepend'>
-                      <label className='input-group-text'>Options</label>
-                    </div>
-                    <select
-                      defaultValue={'option'}
-                      className='form-control form-control-lg'
-                    >
-                      <option value='option' disabled>
-                        Choose...
-                      </option>
-                      <option value='1'>One</option>
-                      <option value='2'>Two</option>
-                      <option value='3'>Three</option>
-                    </select>
-                  </div>
-
-                  <div className='input-group mb-3' >
-                    <select
-                      defaultValue={'option'}
-                      className='form-control form-control-lg'
-                    >
-                      <option value='option' disabled>
-                        Choose...
-                      </option>
-                      <option value='1'>One</option>
-                      <option value='2'>Two</option>
-                      <option value='3'>Three</option>
-                    </select>
-                    <div className='input-group-append'>
-                      <label className='input-group-text'>Options</label>
-                    </div>
-                  </div>
-
-                  <div className='input-group mb-3' >
-                    <div className='input-group-prepend'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                    <select
-                      defaultValue={'option'}
-                      className='form-control form-control-xl'
-                    >
-                      <option value='option' disabled>
-                        Choose...
-                      </option>
-                      <option value='1'>One</option>
-                      <option value='2'>Two</option>
-                      <option value='3'>Three</option>
-                    </select>
-                  </div>
-
-                  <div className='input-group' >
-                    <select
-                      defaultValue={'option'}
-                      className='form-control form-control-xl'
-                    >
-                      <option value='option' disabled>
-                        Choose...
-                      </option>
-                      <option value='1'>One</option>
-                      <option value='2'>Two</option>
-                      <option value='3'>Three</option>
-                    </select>
-                    <div className='input-group-append'>
-                      <button className='btn btn-primary' type='button'>
-                        Button
-                      </button>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className='col-xl-6 col-lg-6'>
-          <div className='card'>
-            <div className='card-header'>
-              <h4 className='card-title'>Custom file input</h4>
-            </div>
-            <div className='card-body'>
-              <div className='basic-form custom_file_input'>
-                <form action='#'>
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <span className='input-group-text'>Upload</span>
-                    </div>
-                    <div className='custom-file'>
-                      <input type='file' className='custom-file-input' />
-                      <label className='custom-file-label'>Choose file</label>
-                    </div>
-                  </div>
-
-                  <div className='input-group mb-3'>
-                    <div className='custom-file'>
-                      <input type='file' className='custom-file-input' />
-                      <label className='custom-file-label'>Choose file</label>
-                    </div>
-                    <div className='input-group-append'>
-                      <span className='input-group-text'>Upload</span>
-                    </div>
-                  </div>
-
-                  <div className='input-group mb-3'>
-                    <div className='input-group-prepend'>
-                      <button className='btn btn-primary btn-sm' type='button'>
-                        Button
-                      </button>
-                    </div>
-                    <div className='custom-file'>
-                      <input type='file' className='custom-file-input' />
-                      <label className='custom-file-label'>Choose file</label>
-                    </div>
-                  </div>
-
-                  <div className='input-group'>
-                    <div className='custom-file'>
-                      <input type='file' className='custom-file-input' />
-                      <label className='custom-file-label'>Choose file</label>
-                    </div>
-                  </div>
-                </form>
-              </div>
-            </div>
-          </div>
-        </div> */}
       </div>
     </Fragment>
   )

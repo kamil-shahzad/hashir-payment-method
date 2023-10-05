@@ -6,7 +6,7 @@ import {
     loginAction,
 } from '../../store/actions/AuthActions';
 // image
-import logo2 from "../../images/logo-full.png";
+import logo2 from "../../images/logo-text.png";
 import login from "../../images/login-bg.jpg";
 
 function Login(props) {
@@ -68,7 +68,7 @@ function Login(props) {
 						<div className="col-xl-12">
 						  <div className="auth-form">
 							<div className=" mb-3">
-							  <h2 className="text-primary">Welcome to Acara</h2>
+							  <h2 className="text-primary">Welcome to Hashir Technologies</h2>
 							</div>
 							<h4 className=" mb-4 ">Sign in by entering information below</h4>
                             {props.errorMessage && (
