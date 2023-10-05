@@ -30,12 +30,15 @@ mongoose
 
 //middlewares
 // app.use(req, res, next)
+app.get('/test', (req, res) => {
+  res.send('API is running'); // Send a message indicating API is running for the root URL
+});
 
 app.use(express.json())
 
 //linking the routes
 app.use(require('./router/accounts/auth'))
-// app.use(require('./router/payments/paymentapis'))
+app.use(require('./router/payments/payment'))
 
 
 app.listen(8080, () => {
