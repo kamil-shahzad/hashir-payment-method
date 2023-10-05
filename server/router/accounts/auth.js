@@ -109,13 +109,6 @@ router.post('/login', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
-
-
-
-
->>>>>>> origin/main
 const path = require('path');
 
 const storage = multer.diskStorage({
@@ -237,29 +230,6 @@ router.post('/payment-platform', async (req, res) => {
       return;
     }
 
-<<<<<<< HEAD
-      if (
-        paymentMethod === 'jazzcash' &&
-        merchantId === merchantId &&
-        securedKey === securedKey
-      ) {
-        res.json({ 
-          code: 200,
-          message: 'Complete process',
-          status: true,
-          parameters: {
-            secretKey,
-            paymentMethod,
-            merchantId,
-            securedKey,
-            comp_name,
-            reg_no,
-          }
-        });
-      } else {
-        res.json({ code: 104, message: 'Invalid parameters' });
-      }
-=======
     const { companyName } = user;
 
     const registerForm = await RegisterForm.findOne({ comp_name: companyName });
@@ -267,7 +237,7 @@ router.post('/payment-platform', async (req, res) => {
     if (!registerForm) {
       res.json({ code: 103, message: 'Nothing found against this company name' });
       return;
->>>>>>> origin/main
+
     }
 
     const newAmountRecord = new Amount({
@@ -450,23 +420,4 @@ router.post('/process-payment', async (req, res) => {
   }
 });
 
-<<<<<<< HEAD
-=======
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
->>>>>>> origin/main
 module.exports = router
